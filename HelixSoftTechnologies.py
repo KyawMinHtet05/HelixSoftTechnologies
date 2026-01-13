@@ -380,7 +380,7 @@ class ClinicalDataGUI:
         self.all_files = []
         self.displayed_files = []
         
-        self.ftp_host = tk.StringVar(value="localhost")
+        self.ftp_host = tk.StringVar(value="docker")
         self.ftp_user = tk.StringVar(value="kmh")
         self.ftp_pass = tk.StringVar(value="123")
         self.remote_dir = tk.StringVar(value="")
