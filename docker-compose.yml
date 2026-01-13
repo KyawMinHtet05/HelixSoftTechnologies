@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  clinical-data-processor:
+    build: .
+    container_name: helixsoft-clinical-data
+    environment:
+      - DISPLAY=host.docker.internal:0
+      - VIRTUAL_DISPLAY=${VIRTUAL_DISPLAY:-false}
+    volumes:
+      - clinical_data:/root/ClinicalData
+      # Windows path for VcXsrv
+      # - /c/Users/Public/Temp/.X11-unix:/tmp/.X11-unix
+    ports:
+      # If you need port forwarding for FTP
+      - "21:21"
+      - "20:20"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+volumes:
+  clinical_data:
