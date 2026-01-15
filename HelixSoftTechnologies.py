@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 import threading
 import queue
+import requests
  
 class ClinicalDataProcessor:
     """Handles FTP connection and file operations"""
@@ -105,6 +106,40 @@ class ClinicalDataValidator:
         self.processed_files_log.write_text("\n".join(sorted(self.processed_files)))
     
     def _generate_guid(self):
+        """
+        Generate a GUID using external API (uuidtools.com) with fallback to local generation.
+        Uses cryptographically secure randomness from external service with local fallback.
+        """
+        try:
+            # Call external API with timeout to prevent blocking
+            response = requests.get (
+                'https://www.uuidtools.com/api/generate/v4',
+                timeout=5
+            )
+            response. raise_for_status ()
+            
+            # API returns JSON array: ["uuid-string"]
+            uuids = response.json()
+            
+            # Validate response format and extract UUID
+            if isinstance(uuids, list) and len(uuids) > 0:
+                return uuids [0]
+            
+        except requests.exceptions.Timeout:
+            # Optional: Log timeout for monitoring
+            # print("UUID API timeout, using local fallback")
+            pass
+        except requests.exceptions. ConnectionError:
+            # Optional: Log connection issues
+            # print("UUID API connection failed, using local fallback")
+            pass
+        except Exception as e:
+            # Catch all other errors (JSON decode, invalid format, etc.)
+            # Optional: Log unexpected errors
+            # print(f"UUID API error: {e), using local fallback")
+            pass
+        
+        # Fallback to local UUID generation if API fails for any reason
         return str(uuid.uuid4())
     
     def _log_error(self, filename, error_details):
@@ -118,7 +153,7 @@ class ClinicalDataValidator:
         return guid, log_entry
     
     def _validate_filename_pattern(self, filename, status_queue=None):
-        pattern = r'^CLINICALDATA\d{14}\.CSV$'
+        pattern = r'^CLINICALDATA_\d{14}\.CSV$'
         is_valid = re.match(pattern, filename, re.IGNORECASE) is not None
         
         if status_queue:
@@ -380,7 +415,7 @@ class ClinicalDataGUI:
         self.all_files = []
         self.displayed_files = []
         
-        self.ftp_host = tk.StringVar(value="host.docker.internal")
+        self.ftp_host = tk.StringVar(value="localhost")
         self.ftp_user = tk.StringVar(value="kmh")
         self.ftp_pass = tk.StringVar(value="123")
         self.remote_dir = tk.StringVar(value="")
