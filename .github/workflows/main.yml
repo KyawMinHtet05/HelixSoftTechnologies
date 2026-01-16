@@ -28,10 +28,18 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Install pytest if not in requirements.txt
+          pip install pytest
 
-      - name: Run basic tests
+      - name: Run pytest tests
         run: |
-          # Add your test commands here
+          # Run pytest with verbose output
+          pytest -v
+        # Optional: continue on error if you want the pipeline to proceed despite test failures
+        # continue-on-error: false
+
+      - name: Run basic syntax check
+        run: |
           python -m py_compile HelixSoftTechnologies.py
           echo "Basic syntax check passed"
 
@@ -86,4 +94,3 @@ jobs:
           echo "Deployment successful!"
           echo "Image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ steps.version.outputs.SHORT_SHA }}"
           echo "Timestamp: $(date)"
-
